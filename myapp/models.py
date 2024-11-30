@@ -33,6 +33,8 @@ class Channel(models.Model):
     contents = models.ManyToManyField(Content, blank=True)
 
     def clean(self):
+        if self.pk is None:
+            return
         if self.subchannels.exists() and self.contents.exists():
             raise ValidationError("A channel cannot have both subchannels and contents.")
 
