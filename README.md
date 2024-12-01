@@ -39,6 +39,7 @@ I followed the steps below for this challenge.
 1. Implement the endpoint that returns the list of channels
 1. Implement the command of exporting the ratings of channels and its test
 1. Dockerize the app
+1. Add GitHub actions workflow
 
 ### Rating channels
 
