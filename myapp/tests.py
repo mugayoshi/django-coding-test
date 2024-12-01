@@ -1,6 +1,108 @@
 from django.test import TestCase
+from django.urls import reverse
+from rest_framework import status
+from rest_framework.test import APIClient
 from myapp.models import Channel, Content
 from myapp.services.channel_rating_service import calculate_channel_ratings
+
+class ChannelListViewTestCase(TestCase):
+    url_name = 'channel list'
+    def setUp(self):
+        self.client = APIClient()
+
+        self.content1 = Content.objects.create(
+            title="Content 1", 
+            metadata={"description": "First content"},
+            rating=7.5
+        )
+        self.content2 = Content.objects.create(
+            title="Content 2", 
+            metadata={"description": "Second content"},
+            rating=8.0
+        )
+        self.content3 = Content.objects.create(
+            title="Content 3", 
+            metadata={"description": "Third content"},
+            rating=6.5
+        )
+        self.content4 = Content.objects.create(
+            title="Content 4", 
+            metadata={"description": "Fourth content"},
+            rating=9.0
+        )
+        self.content5 = Content.objects.create(
+            title="Content 5", 
+            metadata={"description": "Fifth content"},
+            rating=7.0
+        )
+
+        self.channel1 = Channel.objects.create(
+            title="Channel 1", 
+            language="English"
+        )
+        self.channel1.contents.add(self.content1, self.content2)
+
+        self.channel2 = Channel.objects.create(
+            title="Channel 2", 
+            language="Spanish"
+        )
+        self.channel2.contents.add(self.content3, self.content4, self.content5)
+
+        self.parent_channel = Channel.objects.create(
+            title="Parent Channel", 
+            language="French"
+        )
+
+        self.subchannel1 = Channel.objects.create(
+            title="Subchannel 1", 
+            language="German",
+            parent_channel=self.parent_channel
+        )
+        self.subchannel1.contents.add(self.content1, self.content2)
+
+        self.subchannel2 = Channel.objects.create(
+            title="Subchannel 2", 
+            language="Italian",
+            parent_channel=self.parent_channel
+        )
+        self.subchannel2.contents.add(self.content3, self.content4, self.content5)
+
+    def test_channel_list_view(self):
+        """
+        Test that the ChannelListView returns only top-level channels
+        """
+        url = reverse(self.url_name)
+        response = self.client.get(url)
+        
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.assertEqual(len(response.data), 3)
+        
+        channel_titles = [channel['title'] for channel in response.data]
+        self.assertIn("Channel 1", channel_titles)
+        self.assertIn("Channel 2", channel_titles)
+        self.assertIn("Parent Channel", channel_titles)
+        
+        for channel in response.data:
+            if channel['title'] == "Channel 1":
+                self.assertEqual(len(channel['contents']), 2)
+            elif channel['title'] == "Parent Channel":
+                self.assertEqual(len(channel['contents']), 0)
+
+    def test_channel_serializer_content(self):
+        """
+        Test that the serializer includes the correct content information
+        """
+        url = reverse(self.url_name)
+        response = self.client.get(url)
+        
+        for channel in response.data:
+            if channel['title'] == "Channel 1":
+                contents = channel['contents']
+                self.assertEqual(len(contents), 2)
+                content_titles = [content['title'] for content in contents]
+                self.assertIn("Content 1", content_titles)
+                self.assertIn("Content 2", content_titles)
 
 class ChannelRatingServiceTests(TestCase):
     def setUp(self):
