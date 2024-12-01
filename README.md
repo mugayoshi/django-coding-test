@@ -23,5 +23,5 @@ docker-compose exec web python manage.py export_channel_rating_csv
 
 5. Run the tests by this command.
 ```sh
-python manage.py test myapp.tests
+docker-compose exec web python manage.py test myapp.tests
 ```
