@@ -40,6 +40,7 @@ I followed the steps below for this challenge.
 1. Implement the command of exporting the ratings of channels and its test
 1. Dockerize the app
 1. Add GitHub actions workflow
+1. Add mypy check
 
 ### Rating channels
 
