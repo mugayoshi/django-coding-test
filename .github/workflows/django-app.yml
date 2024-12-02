@@ -30,3 +30,8 @@ jobs:
     - name: Run Tests
       run: |
         python manage.py test myapp.tests
+
+    - name: Run Mypy
+      run: |
+        mypy myapp
+      continue-on-error: false
